@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataTemplate name="XXQGEN_BST_RPT_AS" version="1.0">
+    <properties>
+        <property name="xml_tag_case" value="upper"/>
+    </properties>
+    <parameters>
+        <parameter name="P_NOTIFICATION" dataType="varchar2"/>
+    </parameters>
+    <dataQuery>
+        <sqlStatement name="Q_MAIN">
+            <![CDATA[
+                  SELECT AIA.INVOICE_NUM,
+                       ASP.VENDOR_NAME SUPPLIER_NAME,
+                       ASSA.VENDOR_SITE_CODE ,
+                       HL.ADDRESS_LINE_1 || ' ' || HL.ADDRESS_LINE_2 || ' ' || HL.ADDRESS_LINE_3 AS SHIP_TO,
+                       HL1.ADDRESS_LINE_1 || ' ' || HL1.ADDRESS_LINE_2 || ' ' || HL1.ADDRESS_LINE_3 AS BILL_TO,
+                       PLA.LINE_NUM,
+                       MSIB.DESCRIPTION ITEM_DESCRIPTION,
+                       MSIB.SEGMENT1 ITEM,
+                       PHA.PO_HEADER_ID,
+                       PLA.PO_LINE_ID,
+                       PLA.UNIT_PRICE PRICE,
+                       NVL(PLA.QUANTITY, PLLA.QUANTITY) QUANTITY,
+                       PLA.UNIT_PRICE * NVL(PLA.QUANTITY, PLLA.QUANTITY) AS AMOUNT,
+                       PLT.LINE_TYPE,
+                       PDA.PO_DISTRIBUTION_ID
+                FROM PO_HEADERS_ALL PHA,
+                     PO_LINES_ALL PLA,
+                     PO_LINE_LOCATIONS_ALL PLLA,
+                     PO_DISTRIBUTIONS_ALL PDA,
+                     AP_INVOICE_LINES_ALL AILA,
+                     AP_SUPPLIERS ASP,
+                     AP_INVOICES_ALL AIA,
+                     AP_SUPPLIER_SITES_ALL ASSA,
+                     MTL_SYSTEM_ITEMS_B MSIB,
+                     HR_LOCATIONS HL,
+                     HR_LOCATIONS HL1,
+                     PO_LINE_TYPES PLT
+                WHERE PHA.PO_HEADER_ID = PLA.PO_HEADER_ID
+                      AND PLA.PO_LINE_ID = PLLA.PO_LINE_ID
+                      AND PLA.PO_LINE_ID = PDA.PO_LINE_ID
+                      AND PDA.LINE_LOCATION_ID = PLLA.LINE_LOCATION_ID
+                      AND AILA.PO_HEADER_ID = PHA.PO_HEADER_ID
+                      AND AILA.PO_LINE_ID = PLA.PO_LINE_ID
+                      AND AILA.PO_LINE_LOCATION_ID = PLLA.LINE_LOCATION_ID
+                      AND AILA.PO_DISTRIBUTION_ID = PDA.PO_DISTRIBUTION_ID
+                      AND AILA.INVOICE_ID = AIA.INVOICE_ID
+                      AND PHA.VENDOR_ID = ASP.VENDOR_ID
+                      AND ASSA.ORG_ID = PHA.ORG_ID
+                      AND ASSA.VENDOR_SITE_ID = PHA.VENDOR_SITE_ID
+                      AND PLA.ITEM_ID = MSIB.INVENTORY_ITEM_ID(+)
+                      AND PLLA.SHIP_TO_ORGANIZATION_ID(+) = MSIB.ORGANIZATION_ID
+                      AND PHA.SHIP_TO_LOCATION_ID = HL.LOCATION_ID
+                      AND PHA.BILL_TO_LOCATION_ID = HL1.LOCATION_ID
+                      AND PLT.LINE_TYPE_ID = PLA.LINE_TYPE_ID
+                      AND PHA.ORG_ID = 204
+                      AND AIA.INVOICE_NUM IN ('ERS-21378-98850','ERS-8006-112663','ERS-7997-11434','ERS-7796-82457','1','1001','123','UP1635','ManualEntry')
+                      ]]>
+        </sqlStatement>
+    </dataQuery>
+    <dataStructure>
+        <group name="G_MAIN" dataType="varchar2" source="Q_MAIN">
+            <element name="INVOICE_NUM" dataType="varchar2" value="INVOICE_NUM"/>
+            <element name="SUPPLIER_NAME" dataType="varchar2" value="SUPPLIER_NAME"/>
+            <element name="SUPPLIER_SITE_CODE" dataType="varchar2" value="SUPPLIER_SITE_ID"/>
+            <element name="SHIP_TO" dataType="varchar2" value="SHIP_TO"/>
+            <element name="BILL_TO" dataType="varchar2" value="BILL_TO"/>
+			<group name="G_MAIN2" dataType="varchar2" source="Q_MAIN">
+            <element name="LINE_NUM" dataType="number" value="LINE_NUM"/>
+            <element name="ITEM_DESCRIPTION" dataType="varchar2" value="ITEM_DESCRIPTION"/>
+            <element name="ITEM" dataType="varchar2" value="ITEM"/>
+            <element name="PO_LINE_ID" dataType="number" value="PO_LINE_ID"/>
+            <element name="PRICE" dataType="number" value="PRICE"/>
+            <element name="QUANTITY" dataType="number" value="QUANTITY"/>
+            <element name="AMOUNT" dataType="number" value="AMOUNT"/>
+            <element name="LINE_TYPE" dataType="number" value="LINE_TYPE"/>
+        </group>
+		</group>
+    </dataStructure>
+</dataTemplate>
